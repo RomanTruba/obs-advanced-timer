@@ -15,6 +15,7 @@ cur_ns        = 0
 up_when_finished = false
 up            = false
 paused        = false
+timer_registered = false
 
 hotkey_id_reset     = obs.OBS_INVALID_HOTKEY_ID
 hotkey_id_pause     = obs.OBS_INVALID_HOTKEY_ID
@@ -147,7 +148,7 @@ function set_time_text(ns, text)
 	end
 end
 
-function script_tick(sec)
+function timer_tick() 
 	if timer_active == false then
 		return
 	end
@@ -252,6 +253,7 @@ function reset(pressed)
 		return
 	end
 
+	disable_obs_timer()
 	if mode == "Streaming timer" or mode == "Recording timer" then
 		return
 	end
@@ -276,10 +278,27 @@ function on_pause(pressed)
 		stop_timer()
 		cur_time = cur_ns
 		paused = true
+		disable_obs_timer()
 	else
 		stop_timer()
 		start_timer()
 		paused = false
+		enable_obs_timer()
+	end
+end
+
+function enable_obs_timer()
+	if timer_registered then
+		disable_obs_timer()
+	end
+	obs.timer_add(timer_tick, 250)
+	timer_registered = true
+end
+
+function disable_obs_timer() 
+	if timer_registered then
+		obs.timer_remove(timer_tick)
+		timer_registered = false
 	end
 end
 
